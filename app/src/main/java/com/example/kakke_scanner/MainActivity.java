@@ -45,6 +45,9 @@ import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -190,45 +193,65 @@ public class MainActivity extends AppCompatActivity {
 
     ///The OCR method
     private void getTextFromImage(Bitmap bitmap){
-        //call the text recognizer from the vision API
-        TextRecognizer recognizer=new TextRecognizer.Builder(this).build();
-        if(!recognizer.isOperational()){
-            Toast.makeText(MainActivity.this,"Error Occurred!!!!!!",Toast.LENGTH_SHORT).show();
-        }
-        else{
-            ///Start extracting the text from the image
-            Frame frame=new Frame.Builder().setBitmap(bitmap).build();
-            SparseArray<TextBlock> textBlockSparseArray=recognizer.detect(frame);
-            StringBuilder stringBuilder=new StringBuilder();
-
-            for(int i=0;i<textBlockSparseArray.size();i++){
-                TextBlock textBlock =textBlockSparseArray.valueAt(i);
-                stringBuilder.append(textBlock.getValue());
-                stringBuilder.append("\n");
-                System.out.println("&&&&&&&&&&&&&&&&& FROM getTextFromImage&&&&&&&&&&&");
-                System.out.println("\n");
-                System.out.println("\n");
+       try {
+           ArrayList<String> myList = new ArrayList<String>();
+           //call the text recognizer from the vision API
+           TextRecognizer recognizer = new TextRecognizer.Builder(this).build();
+           if (!recognizer.isOperational()) {
+               Toast.makeText(MainActivity.this, "Error Occurred!!!!!!", Toast.LENGTH_SHORT).show();
+           } else {
+               ///Start extracting the text from the image
+               Frame frame = new Frame.Builder().setBitmap(bitmap).build();
+               SparseArray<TextBlock> textBlockSparseArray = recognizer.detect(frame);
+               StringBuilder stringBuilder = new StringBuilder();
+               System.out.println("textBlockSparseArray size--------:::   " + textBlockSparseArray.size());
+               System.out.println("\n");
 
 
-                if(textBlock.getValue().endsWith("ZR")){
-                    System.out.println(textBlock.getValue());
+               for (int i = 0; i < textBlockSparseArray.size(); i++) {
+                   TextBlock textBlock = textBlockSparseArray.valueAt(i);
+                   System.out.println("textBlock.getValue ------>>>  " + textBlock.getValue());
 
-                }
-//                int value = Integer.parseInt(textBlock.getValue().replaceAll("[^0-9]", ""));
-//                System.out.println("VALUE IS " +value);
-                System.out.println("\n");
-                System.out.println("\n");
-                System.out.println("&&&&&&&&&&&&&&&&& ENDS getTextFromImage&&&&&&&&&&&");
-                System.out.println("\n");
-                System.out.println("\n");
+                   stringBuilder.append(textBlock.getValue());
+                   stringBuilder.append("\n");
+               }
+
+               //call our textview
+               textview_data.setText(stringBuilder.toString());
+               button_capture.setText("Retake");
+               button_copy.setVisibility(View.VISIBLE);
+
+               System.out.println("FINAL FINAL StringBuilder--->>>  " + stringBuilder);
+               System.out.println("FINAL FINAL StringBuilder ENDDDDINGGG--->>>  ");
+               String[] lines = stringBuilder.toString().split("\\n");
+               Float total = 0.0f;
+
+               //String s = "eXamPLestring>1.67>>ReSTOfString>>0.99>>ahgf>>.9>>>123>>>2323.12";
+               Pattern p = Pattern.compile("[-+]?[0-9]*\\.?[0-9]+");
+
+               for (String s : lines) {
+                   if (s.contains("ZR") || s.endsWith("R")) {
+                       // System.out.println("Content = " + s);
+                       // System.out.println("Length = " + s.length());
+                       Matcher m = p.matcher(s);
+                       while (m.find()) {
+                           System.out.println(">> " + m.group());
+                           total=total+Float.parseFloat(m.group());
+                       }
+                       //total=total+Double.parseDouble(s);
+
+                   }
+
+               }
+               //System.out.println("TOTAL IS :::::::  "+total);
+            Toast.makeText(this, "KAKKE TOTAL : "+total.toString(), Toast.LENGTH_LONG).show();
 
             }
+       }catch(Exception e){
+           Toast.makeText(this,"ERROR OCCURRED WHILE ADDING",Toast.LENGTH_SHORT).show();
+       }
 
-            //call our textview
-            textview_data.setText(stringBuilder.toString());
-            button_capture.setText("Retake");
-            button_copy.setVisibility(View.VISIBLE);
-        }
+
 
     }
     
